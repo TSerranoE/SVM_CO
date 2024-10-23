@@ -26,7 +26,8 @@ def f_rest(x, u, i):
 def u_rest(x, u, alpha, i):
     return u[i] - np.sum(alpha[l]*kernel(x, l, i, sigma) for l in range(N))
 
-
+def kernel():
+    pass
 
 
 def OptimalControlbyLSSVM():
