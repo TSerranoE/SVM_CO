@@ -1,10 +1,20 @@
 import numpy as np
 from scipy.optimize import minimize
 
-def OptimalControlbyLSSVM(x1, alpha1, lambda_value, kernel, f, J_N):
-    pass
 
-def funcional(alpha, x, lambda_value, kernel, f, J_N, vf,N):
+#Constantes
+x0 = [0,0]
+alpha0 = 1
+alpha = 1
+T = 5
+N = 100
+vf = 4
+lambda_value = 0.01
+sigma = 1
+
+p = [alpha ,T, N, vf, lambda_value, sigma]
+
+def funcional(alpha, x, lambda_value, vf, N):
     return (x[2]-vf)**2 + lambda_value*(sum(alpha[i]**2 for i in range(N)))
 
 def kernel(sigma,x , l, i):
@@ -13,6 +23,19 @@ def kernel(sigma,x , l, i):
 def f(x, u, T, N, alpha):
     z1 = x[1] + (T/N)*(x[2])
     z2 = x[2] + (T/N)*(-alpha*x[1] + x[2] + u)
+    return z1, z2
 
-def J_N():
-    pass
+def u_restriccion(sigma, x, l):
+    return sum(alpha[i]*kernel(sigma, x, l, i) for i in range(N))
+
+def OptimalControlbyLSSVM(x0, alpha0, lambda_value, kernel, f, funcional, p):
+    alpha ,T, N, vf, lambda_value, sigma = p
+
+    sol = minimize(funcional, [x0,alpha0], args=(x0, alpha ,T, N, vf, lambda_value, sigma))
+
+    return sol
+
+
+
+
+
