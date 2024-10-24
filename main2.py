@@ -1,103 +1,103 @@
 import numpy as np
 from scipy.optimize import minimize
-
+import timeout_decorator
 
 #Constantes
-x0 = [0,0]
-alpha0 = 1
-alpha = 1
-T = 5
-N = 100
+T = 4
+N = 50
 vf = 4
 lambda_value = 0.01
 sigma = 1
-
-p = [alpha ,T, N, vf, lambda_value, sigma]
-
-
-
-
-import numpy as np
-from scipy.optimize import minimize
-
-#Constantes
-T = 5
-N = 100
-vf = 4
-lambda_value = 0.01
-sigma = 1
+gamma = 1
 
 # Variables iniciales
-x0 = np.array([0, 0])
-alpha0 = np.array([1])
-vars0 = np.hstack((x0, alpha0))
+iniciales = [3, 4, 1] # x0, v0, alpha0
+vars0 = np.zeros((N, 3))
+vars0[0] = iniciales
 
-# Variables
-x = np.zeros((N, 2))
-alpha = np.zeros(N)
+# Transformar las 3 columnas en un vector
+vars0 = vars0.T.flatten()
 
-# Control
-u = np.zeros(N)
 
 # Parámetros
-parametros = [T, N, vf, lambda_value, sigma]
+parametros = [T, N, vf, lambda_value, sigma, gamma]
 
-def funcional(alpha, x, parametros):
-    _, N, vf, lambda_value, _ = parametros
-    return (x[N-1][1]-vf)**2 + lambda_value*np.sum(alpha**2)
+# Definición de la función objetivo
+def obj_funct(vars, kernel, parametros):
+    T, N, vf, lambda_value, _, gamma = parametros
+    x = vars[:2*N].reshape(2, N).T
+    alpha = vars[2*N:]
 
-def kernel(x, l, i, sigma):
-    return np.exp(-(1/(2*sigma**2))  *  ((x[l][0]-x[i][0])**2 + (x[l][1]-x[i][1])**2))
+    x_gorro = np.zeros((N, 2))
+    x_gorro[0] = iniciales[:2]
+    # Restricciones sobre x
+    for i in range(N-1):
+        x_gorro[i+1][0] =  x_gorro[i][0] + (T/N)*(x_gorro[i][1]) 
+        x_gorro[i+1][1] = x_gorro[i][1] + (T/N)*(-gamma*x_gorro[i][0] + x_gorro[i][1] + sum(alpha[l]*
+                                                       kernel(x, x_gorro, l, i, parametros) for l in range(N))) 
+    print("valor", (x_gorro[N-1][1]-vf)**2 + lambda_value*np.sum(alpha**2))
+    return (x_gorro[N-1][1]-vf)**2 + lambda_value*np.sum(alpha**2)
 
-def restricciones(x, alpha, u, kernel, parametros):
-    T, N, vf, lambda_value, sigma = parametros
-    for i in range(N):
-        x[i+1][0] = x[i][0] + (T/N)*(x[i][1])
-        x[i+1][1] = x[i][1] + (T/N)*(-alpha*x[i][0] + x[i][1] + u[i])
-        u[i] = np.sum(alpha[l]*kernel(sigma, x, l, i) for l in range(N))
-    return np.array([x[i+1][0], x[i+1][1], u[i]])
+# Definición del kernel
+def kernel(x, x_gorro, l, i, parametros):
+    _, _, _, _, sigma, _ = parametros
+    return np.exp(-(1/(2*sigma**2))  *  ((x[l][0]-x_gorro[i][0])**2 + (x[l][1]-x_gorro[i][1])**2))
+
+# Restricciones sobre x
+def f_rest(vars, u, i, x_gorro,parametros):
+    T, N, _, _, _ , gamma= parametros
+    x = vars[:2*N].reshape(2, N).T
+    alpha = vars[2*N:]
 
 
 
-def OptimalControlbyLSSVM(vars0, , kernel, restricciones, funcional, parametros):
-    T, N, vf, lambda_value, sigma = parametros
+# Restricciones sobre u
+def u_rest(vars, u, i, kernel, parametros):
+    _, N, _, _, _, _ = parametros
+    x = vars[:2*N].reshape(2, N).T
+    alpha = vars[2*N:]
+    return u[i] - sum(alpha[l]*kernel(x, l, i, parametros) for l in range(N))
 
+# Definición de la función de optimización
+@timeout_decorator.timeout(300) 
+def OptimalControlbyLSSVM(vars0, obj_funct, kernel, parametros):
 
-
-    # Resolver el problema de optimización
-    sol = minimize(objective, vars0, constraints=cons, method='SLSQP')
-
+    sol = minimize(lambda vars: obj_funct(vars, kernel,parametros), vars0, method='SLSQP')
     return sol
 
-# Llamar a la función de optimización
-# sol = OptimalControlbyLSSVM(x0, alpha0, lambda_value, kernel, f, funcional, p)
-# print(sol)
+# Ejecución de la optimización
+
+try:
+    result = OptimalControlbyLSSVM(vars0, obj_funct, kernel, parametros)
+    print(result)
+except timeout_decorator.timeout_decorator.TimeoutError:
+    print("La optimización se detuvo después de 60 segundos.")
 
 
+import matplotlib.pyplot as plt
 
+# Extraer las soluciones
+x_sol = result.x[:2*N].reshape(2, N).T
+alpha_sol = result.x[2*N:]
 
-def funcional(alpha, x, lambda_value, vf, N):
-    return (x[2]-vf)**2 + lambda_value*(sum(alpha[i]**2 for i in range(N)))
+# Graficar las soluciones
+plt.figure(figsize=(12, 6))
 
-def kernel(sigma,x , l, i):
-    return np.exp(-(1/(2*sigma**2))  *  ((x[l][1]-x[i][1])**2 + (x[l][2]-x[i][2])**2))
+# Posición x
+plt.subplot(2, 1, 1)
+plt.plot(range(N), x_sol[:, 0], label='Posición x')
+plt.xlabel('Tiempo')
+plt.ylabel('Posición x')
+plt.legend()
+plt.grid()
 
-def f(x, u, T, N, alpha):
-    z1 = x[1] + (T/N)*(x[2])
-    z2 = x[2] + (T/N)*(-alpha*x[1] + x[2] + u)
-    return z1, z2
+# Velocidad v
+plt.subplot(2, 1, 2)
+plt.plot(range(N), x_sol[:, 1], label='Velocidad v', color='orange')
+plt.xlabel('Tiempo')
+plt.ylabel('Velocidad v')
+plt.legend()
+plt.grid()
 
-def u_restriccion(sigma, x, l):
-    return sum(alpha[i]*kernel(sigma, x, l, i) for i in range(N))
-
-def OptimalControlbyLSSVM(x0, alpha0, lambda_value, kernel, f, funcional, p):
-    alpha ,T, N, vf, lambda_value, sigma = p
-
-    sol = minimize(funcional, [x0,alpha0], args=(x0, alpha ,T, N, vf, lambda_value, sigma))
-
-    return sol
-
-
-
-
-
+plt.tight_layout()
+plt.show()
