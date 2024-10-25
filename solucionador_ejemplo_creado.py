@@ -4,7 +4,7 @@ import timeout_decorator # type: ignore
 
 #Constantes
 T = 10
-N = 70
+N = 50
 vf = 100
 lambda_value = 0
 sigma = 1
