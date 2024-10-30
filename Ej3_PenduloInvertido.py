@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 # Definición de la función objetivo
 def funcion_objetivo(vars, kernel, valores_iniciales, parametros):
-    T, N, vf, lambda_value, _, gamma = parametros
+    T, N, lambda_value, sigma, h, m, m_t, l, g, Q, R, A , B = parametros
 
     # Extraer las variables
     x = vars[:2*N].reshape(2, N).T
@@ -23,19 +23,19 @@ def funcion_objetivo(vars, kernel, valores_iniciales, parametros):
 
 # Definición variables valores_iniciales
 def variable_inicial(valores_iniciales, parametros):
-    _, N, _, _, _, _ = parametros
+    T, N, lambda_value, sigma, h, m, m_t, l, g, Q, R, A , B = parametros
     variable_inicial = np.zeros((N, 3))
     variable_inicial[0] = valores_iniciales
     return variable_inicial.T.flatten()
 
 # Definición del kernel en este caso RBF
 def kernel(x, x_gorro, l, i, parametros):
-    _, _, _, _, sigma, _ = parametros
+    T, N, lambda_value, sigma, h, m, m_t, l, g, Q, R, A , B = parametros
     return np.exp(-(1/(2*sigma**2))  *  ((x[l][0]-x_gorro[i][0])**2 + (x[l][1]-x_gorro[i][1])**2))
 
 # Graficar las soluciones
 def plot(result, valores_iniciales, parametros):
-    T, N, vf, lambda_value, _, gamma = parametros
+    T, N, lambda_value, sigma, h, m, m_t, l, g, Q, R, A , B = parametros
 
     # Extraer las soluciones
     x_sol = result.x[:2*N].reshape(2, N).T
