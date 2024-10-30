@@ -1,26 +1,43 @@
 import numpy as np
 from Ej3_PenduloInvertido import funcion_objetivo, variable_inicial, kernel, plot
 from scipy.optimize import minimize
-
+from scipy.linalg import solve_continuous_are
 
 #Constantes
-T = 10
-N = 50
-lambda_value = 0.01
+T = 5
+N = 100
+lambda_value = 0
+
 sigma = 1
 h = 0.05
 m = 0.1
 m_t = 1.1
 largo = 0.5
 g = 9.81
-Q = np.eye(4)
+
+A = np.array([[0, 1, 0, 0], 
+              [0, 0, -g*m/(4/3*m_t-m), 0], 
+              [0, 0, 0, 1], 
+              [0, 0, m_t*g/(largo*(4/3*m_t-m)), 0]])
+
+B = np.array([[0], 
+              [4/3*(1/(4/3*m_t-m))], 
+              [0], 
+              [-1/(largo*(4/3*m_t-m))]])
+
+Q = np.eye(4)  # 4x4 Identity matrix
+R = 0.01*np.diag([1])  # 1x1 Diagonal matrix
+
+# Solve the continuous-time algebraic Riccati equation
+P = solve_continuous_are(A, B, Q, R)
+
+# Compute the LQR gain
+K = np.linalg.inv(R) @ B.T @ P
+
+B = np.array([0, 4/3*(1/(4/3*m_t-m)), 0, -1/(largo*(4/3*m_t-m))])
 R = 0.01
-A = np.array([[0, 1, 0, 0], [0, 0, -g*m/(4/3*m_t-m), 0], [0, 0, 0, 1], [0, 0, m_t*g/(largo*(4/3*m_t-m)), 0]])
-B = np.array([0, 4/3*(1/(4/3*m_t-m)), 0, -1/(largo*(4/3*m_t-m))]).T
-
-
 # Parámetros
-parametros = [T, N, lambda_value, sigma, h, m, m_t, largo, g, Q, R, A , B]
+parametros = [T, N, lambda_value, sigma, h, m, m_t, largo, g, Q, R, A , B, K]
 
 # x0, v0, theta0, w0, alpha0
 valores_iniciales = [0, 0 , np.pi, 0, 0.1] 
