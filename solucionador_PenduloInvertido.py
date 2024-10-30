@@ -6,8 +6,7 @@ from scipy.linalg import solve_continuous_are
 #Constantes
 T = 5
 N = 100
-lambda_value = 0
-
+lambda_value = 100
 sigma = 1
 h = 0.05
 m = 0.1
@@ -33,14 +32,15 @@ P = solve_continuous_are(A, B, Q, R)
 
 # Compute the LQR gain
 K = np.linalg.inv(R) @ B.T @ P
+print(K[0])
 
 B = np.array([0, 4/3*(1/(4/3*m_t-m)), 0, -1/(largo*(4/3*m_t-m))])
 R = 0.01
 # Parámetros
-parametros = [T, N, lambda_value, sigma, h, m, m_t, largo, g, Q, R, A , B, K]
+parametros = [T, N, lambda_value, sigma, h, m, m_t, largo, g, Q, R, A , B, K[0]]
 
 # x0, v0, theta0, w0, alpha0
-valores_iniciales = [0, 0 , np.pi, 0, 0.1] 
+valores_iniciales = [0.02, 0.01, 0.05, 0.01, 0.01] 
 
 variable_inicial = variable_inicial(valores_iniciales, parametros)
 

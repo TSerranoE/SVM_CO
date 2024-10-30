@@ -23,11 +23,11 @@ def funcion_objetivo(vars, kernel, valores_iniciales, parametros):
         k3 = np.matmul(A , (x_gorro[i] + (h/2)*k2)) + B * (u[i] + (h/2))
         k4 = np.matmul(A , (x_gorro[i] + h*k3)) + B * (u[i] + h)
         x_gorro[i+1] = x_gorro[i] + (h/6)*(k1 + 2*k2 + 2*k3 + k4)
-    u[N-1] = sum(alpha[l] * kernel(x, x_gorro, l, N-1, parametros) for l in range(N)) 
+    u[N-1] = (K-L_laplaciano) @ x_gorro[N-1] + sum(alpha[l] * kernel(x, x_gorro, l, N-1, parametros) for l in range(N))
     
 
     # Imprimir el valor de la función objetivo
-    objetivo = sum(np.matmul(np.matmul(x_gorro[i].T, Q), x_gorro[i]) + R*u[i]* u[i] + lambda_value * alpha[i]**2 for i in range(N))
+    objetivo = sum(np.matmul(np.matmul(x_gorro[i].T, Q), x_gorro[i])  for i in range(N-5,N)) + sum(R*u[i]**2 + lambda_value*alpha[i]**2 for i in range(N))
     print("valor" , str(objetivo) )
     return (objetivo)
 
