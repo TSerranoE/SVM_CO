@@ -37,11 +37,6 @@ def variable_inicial(valores_iniciales, parametros):
     return variable_inicial.T.flatten()
 
 
-# Definición del kernel en este caso RBF
-def kernel_2(x, x_gorro, l, i, parametros):
-    T, N, lambda_value, sigma, gamma, a, b, c = parametros
-    return np.exp(-(1/(2*sigma**2))  *  ((x[l][0]-x_gorro[i][0])**2 + (x[l][1]-x_gorro[i][1])**2 + (x[l][2]-x_gorro[i][2])**2))
-
 def kernel(x, x_gorro, l, i, index, parametros):
     T, N, lambda_value, sigma, gamma, a, b, c = parametros
     return np.exp(-(1/(2*sigma**2))  *  ((x[l][index]-x_gorro[i][index])**2)) 

@@ -3,9 +3,9 @@ from scipy.optimize import minimize
 
 
 #Constantes
-T = 5
+T = 10
 N = 30
-lambda_value = 0.01
+lambda_value = 0.1
 sigma = 1
 gamma = 0.1
 a = 0.1
