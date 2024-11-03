@@ -3,11 +3,10 @@ from Ej3_PenduloInvertido import funcion_objetivo, variable_inicial, kernel, plo
 from scipy.optimize import minimize
 from scipy.linalg import solve_continuous_are
 
-#Constantes
+# Constantes
 T = 5
 N = 100
-lambda_value = 100
-sigma = 1
+lambda_value = 0
 h = 0.05
 m = 0.1
 m_t = 1.1
@@ -32,27 +31,29 @@ P = solve_continuous_are(A, B, Q, R)
 
 # Compute the LQR gain
 K = np.linalg.inv(R) @ B.T @ P
-print(K[0])
 
 B = np.array([0, 4/3*(1/(4/3*m_t-m)), 0, -1/(largo*(4/3*m_t-m))])
 R = 0.01
 # Parámetros
-parametros = [T, N, lambda_value, sigma, h, m, m_t, largo, g, Q, R, A , B, K[0]]
+parametros = [T, N, lambda_value, h, m, m_t, largo, g, Q, R, A , B, K[0]]
 
-# x0, v0, theta0, w0, alpha0
-valores_iniciales = [0.02, 0.01, 0.05, 0.01, 0.01] 
+# x0, v0, theta0, w0, alpha0, sigma0
+valores_iniciales = [0, 0, 0, 0, 0.01, np.sqrt(10)] 
 
-variable_inicial = variable_inicial(valores_iniciales, parametros)
+variables_iniciales = variable_inicial(valores_iniciales, parametros)
 
+
+
+constraints = [{'type': 'ineq', 'fun': lambda vars, i=i: 100 - np.abs(vars[3*N + i])} for i in range(N)]
 
 # Optimización de LSSVM
-def OptimalControlbyLSSVM(variable_inicial, funcion_objetivo, kernel, valores_iniciales ,parametros):
-    sol = minimize(lambda vars: funcion_objetivo(vars, kernel, valores_iniciales, parametros), variable_inicial, method='SLSQP')
+def OptimalControlbyLSSVM(variables_iniciales, funcion_objetivo, kernel, valores_iniciales ,parametros):
+    sol = minimize(lambda vars: funcion_objetivo(vars, kernel, valores_iniciales, parametros), 
+                   variables_iniciales, method='SLSQP')
     return sol
 
 # Ejecución de la optimización
-result = OptimalControlbyLSSVM(variable_inicial, funcion_objetivo, kernel, valores_iniciales, parametros)
+result = OptimalControlbyLSSVM(variables_iniciales, funcion_objetivo, kernel, valores_iniciales, parametros)
 print(result)
-
 
 plot(result, valores_iniciales, parametros)
