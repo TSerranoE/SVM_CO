@@ -38,13 +38,10 @@ R = 0.01
 parametros = [T, N, lambda_value, h, m, m_t, largo, g, Q, R, A , B, K[0]]
 
 # x0, v0, theta0, w0, alpha0, sigma0
-valores_iniciales = [0, 0, 0, 0, 0.01, np.sqrt(10)] 
+valores_iniciales = [0, 0, np.pi, 0, 0.01, np.sqrt(10)] 
 
 variables_iniciales = variable_inicial(valores_iniciales, parametros)
 
-
-
-constraints = [{'type': 'ineq', 'fun': lambda vars, i=i: 100 - np.abs(vars[3*N + i])} for i in range(N)]
 
 # Optimización de LSSVM
 def OptimalControlbyLSSVM(variables_iniciales, funcion_objetivo, kernel, valores_iniciales ,parametros):
