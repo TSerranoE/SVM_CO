@@ -38,7 +38,7 @@ R = 0.01
 parametros = [T, N, lambda_value, h, m, m_t, largo, g, Q, R, A , B, K[0]]
 
 # x0, v0, theta0, w0, alpha0, sigma0
-valores_iniciales = [0, 0, np.pi, 0, 0.01, np.sqrt(10)] 
+valores_iniciales = [-0.02, 0.01, 0, 0.02, 0.1, np.sqrt(10)] 
 
 variables_iniciales = variable_inicial(valores_iniciales, parametros)
 

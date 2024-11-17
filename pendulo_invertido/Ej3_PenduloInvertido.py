@@ -51,6 +51,7 @@ def kutta(x, x_gorro, alpha, sigma, kernel, parametros):
         x_gorro[i+1] = x_gorro[i] + (h/6)*(k1 + 2*k2 + 2*k3 + k4)
     u[N-1] = (K-L_laplaciano) @ x_gorro[N-1] + sum(alpha[l] * kernel(x, x_gorro, l, N-1, sigma, parametros) for l in range(N))
 
+    return x_gorro, u
 # Definición de la función objetivo
 def funcion_objetivo(vars, kernel, valores_iniciales, parametros):
     T, N, lambda_value, h, m, m_t, largo, g, Q, R, A , B, K = parametros
@@ -66,10 +67,15 @@ def funcion_objetivo(vars, kernel, valores_iniciales, parametros):
     x_gorro[0] = valores_iniciales[:4]
 
     # Cálculo de la función objetivo
+    u = np.zeros(N)
     for i in range(N-1):
-        x_gorro[i+1] = (F(x_gorro[i], parametros) + G(x_gorro[i], parametros)) *   sum(alpha[l] * kernel(x, x_gorro, l, i, sigma, parametros) for l in range(N))
-
-    
+        u[i] =  sum(alpha[l] * kernel(x, x_gorro, l, i, sigma, parametros) for l in range(N))
+        k1 = F(x_gorro[i], parametros) + G(x_gorro[i], parametros) * u[i]
+        k2 = F(x_gorro[i] + (h/2)*k1, parametros) + G(x_gorro[i] + (h/2)*k1, parametros) * (u[i] + (h/2))
+        k3 = F(x_gorro[i] + (h/2)*k2, parametros) + G(x_gorro[i] + (h/2)*k2, parametros) * (u[i] + (h/2))
+        k4 = F(x_gorro[i] + h*k3, parametros) + G(x_gorro[i] + h*k3, parametros) * (u[i] + h)
+        x_gorro[i+1] = x_gorro[i] + (h/6)*(k1 + 2*k2 + 2*k3 + k4)
+    u[N-1] =  sum(alpha[l] * kernel(x, x_gorro, l, N-1, sigma, parametros) for l in range(N))
     # Imprimir el valor de la función objetivo
     objetivo = sum(np.matmul(x_gorro[i].T, x_gorro[i])  for i in range(N-5,N)) + sum(lambda_value*alpha[i]**2 for i in range(N))
     print("valor" , str(objetivo) )
@@ -101,21 +107,16 @@ def plot(result, valores_iniciales, parametros):
     alpha_sol = result.x[4*N:5*N]
     sigma = result.x[5*N]
 
-    L_laplaciano = -sum((alpha_sol[l]*kernel(x_sol, np.zeros((N, 4)), l, 0, sigma, parametros) /sigma**2)*x_sol[l] for l in range(N))
     # Creación de x_gorro
     x_gorro = np.zeros((N, 4))
     x_gorro[0] = valores_iniciales[:4]
-    u_opt = np.zeros(N)
-    for i in range(N-1):
-        u_opt[i] =  sum(alpha_sol[l] * kernel(x_sol, x_gorro, l, i, sigma, parametros) for l in range(N))
-        x_gorro[i+1] = (F(x_gorro[i], parametros) + G(x_gorro[i], parametros)) *   sum(alpha_sol[l] * kernel(x_sol, x_gorro, l, i, sigma, parametros) for l in range(N))
-    u_opt[N-1] =  sum(alpha_sol[l] * kernel(x_sol, x_gorro, l, N-1, sigma, parametros) for l in range(N))
-    
+
+    x_gorro, u_opt = kutta(x_sol, x_gorro, alpha_sol, sigma, kernel, parametros)
     # x_modularizado = x_gorro[N-1]
     # x_modularizado[2] = x_modularizado[2]%(2*np.pi)
     
     # Imprimir el valor de la función objetivo
-    objetivo = sum(np.matmul(x_gorro[i].T, x_gorro[i])  for i in range(N-5,N)) + lambda_value*sum(lambda_value*alpha_sol[i]**2 for i in range(N))
+    objetivo = sum(np.matmul(x_gorro[i].T, x_gorro[i])  for i in range(N-5,N)) + sum(lambda_value*alpha_sol[i]**2 for i in range(N))
 
     print("valor", objetivo)
     print("posición final", x_gorro[N-1])
