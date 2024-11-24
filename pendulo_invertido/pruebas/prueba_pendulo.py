@@ -36,16 +36,16 @@ B = np.array([0, 4/3*(1/(4/3*m_t-m)), 0, -1/(largo*(4/3*m_t-m))])
 R = 0.01
 # Parámetros
 parametros = [N, lambda_value, h, m, m_t, largo, g, Q, R, A , B, K[0]]
-valores_iniciales = [0, 0, 0, 0, 0.001, np.sqrt(10)] 
+valores_iniciales = [0, 0, 0, 0, 0.1, np.sqrt(10)] # x0, v0, theta0, w0, alpha0, sigma0
 
 # Definición variables valores_iniciales
 def variable_inicial(valores_iniciales, parametros):
     N, lambda_value, h, m, m_t, largo, g, Q, R, A , B, K = parametros
-    variable_inicial = np.zeros((N, 5))
+    variable_inicial = np.random.uniform(-0.01, 0.01, (N, 5))
     variable_inicial[0] = valores_iniciales[:5]
     variable = np.zeros(N*5+1)
-    variable[:N*5]=variable_inicial.T.flatten()
-    variable[-1]=valores_iniciales[5]
+    variable[:N*5] = variable_inicial.T.flatten()
+    variable[-1] = valores_iniciales[5]
     return variable
 
 variables_iniciales = variable_inicial(valores_iniciales, parametros)
@@ -112,8 +112,8 @@ def constraint(vars):
 
 # Definir las restricciones en el formato requerido por scipy.optimize.minimize
 constraints = [{'type': 'eq', 'fun': constraint},
-               {'type': 'eq', 'fun': lambda vars: vars[0]},  # x[0] = 0
-               {'type': 'ineq', 'fun': lambda vars: vars[5*N]}]  # sigma > 0
+               {'type': 'ineq', 'fun': lambda vars: vars[5*N]},  # sigma > 0
+               {'type': 'eq', 'fun': lambda vars: vars[:4]}]  # Las primeras 4 variables deben ser 0
 
 # Minimizar la función objetivo con restricciones
 result = minimize(lambda vars: funcion_obj(vars), 
