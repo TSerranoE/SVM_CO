@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.optimize import minimize
 from scipy.linalg import solve_continuous_are
-from Ej3_PenduloInvertido import plot
+from pendulo_invertido.pendulo_invertido import plot
 import matplotlib.pyplot as plt
 
 # Constantes

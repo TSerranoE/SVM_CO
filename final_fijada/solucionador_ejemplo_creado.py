@@ -1,4 +1,4 @@
-from ejemplo_creado import funcion_objetivo, variable_inicial, kernel, plot
+from final_fijada.ejemplo_creado import funcion_objetivo, variable_inicial, kernel, plot
 from scipy.optimize import minimize
 
 

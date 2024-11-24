@@ -1,5 +1,5 @@
 import numpy as np
-from Ej3_PenduloInvertido import funcion_objetivo, variable_inicial, kernel, plot
+from pendulo_invertido.pendulo_invertido import funcion_objetivo, variable_inicial, kernel, plot
 from scipy.optimize import minimize
 from scipy.linalg import solve_continuous_are
 
