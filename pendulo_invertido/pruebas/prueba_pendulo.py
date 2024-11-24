@@ -1,7 +1,6 @@
 import numpy as np
 from scipy.optimize import minimize
 from scipy.linalg import solve_continuous_are
-from pendulo_invertido.pendulo_invertido import plot
 import matplotlib.pyplot as plt
 
 # Constantes
@@ -31,13 +30,13 @@ P = solve_continuous_are(A, B, Q, R)
 
 # Compute the LQR gain
 K = np.linalg.inv(R) @ B.T @ P
-print(K)
+print(K[0])
 
 B = np.array([0, 4/3*(1/(4/3*m_t-m)), 0, -1/(largo*(4/3*m_t-m))])
 R = 0.01
 # Parámetros
 parametros = [N, lambda_value, h, m, m_t, largo, g, Q, R, A , B, K[0]]
-valores_iniciales = [-0.02, 0.01, 0.03, 0.02, 1, np.sqrt(10)] 
+valores_iniciales = [0, 0, 0, 0, 0.001, np.sqrt(10)] 
 
 # Definición variables valores_iniciales
 def variable_inicial(valores_iniciales, parametros):
@@ -95,7 +94,7 @@ def kernel(x, x_gorro, l, i, sigma, parametros):
 
 def funcion_obj(vars):
     x = vars[:4*N].reshape(4, N).T
-    return sum(np.matmul(x[i].T, x[i]) for i in range(N-5, N))
+    return sum(np.matmul(x[i].T, x[i]) for i in range(N-6, N))
 
 tf = 5
 N = 100
@@ -112,7 +111,9 @@ def constraint(vars):
     return np.concatenate(constraints)
 
 # Definir las restricciones en el formato requerido por scipy.optimize.minimize
-constraints = {'type': 'eq', 'fun': constraint}
+constraints = [{'type': 'eq', 'fun': constraint},
+               {'type': 'eq', 'fun': lambda vars: vars[0]},  # x[0] = 0
+               {'type': 'ineq', 'fun': lambda vars: vars[5*N]}]  # sigma > 0
 
 # Minimizar la función objetivo con restricciones
 result = minimize(lambda vars: funcion_obj(vars), 
@@ -133,16 +134,16 @@ x_gorro = np.zeros((N, 4))
 x_gorro[0] = valores_iniciales[:4]
 u = np.zeros(N)
 for i in range(N-1):
-    L_laplaciano = -sum((alpha_sol[l]*kernel(x_sol, np.zeros((N, 4)), l, 0, sigma, parametros) /sigma**2)*x_sol[l] for l in range(N))
-    u[i] =  (K) @ x_gorro[i] + sum(alpha_sol[l] * kernel(x_sol, x_gorro, l, i, sigma, parametros) for l in range(N))
+    L_laplaciano = sum((2*alpha_sol[l]*np.exp(-np.matmul(x_sol[l].T, x_sol[l])/sigma**2)/sigma**2)*x_sol[l] for l in range(N))
+    u[i] =  (K-L_laplaciano) @ x_gorro[i] + sum(alpha_sol[l] * kernel(x_sol, x_gorro, l, i, sigma, parametros) for l in range(N))
     k1 = F(x_gorro[i], parametros) + G(x_gorro[i], parametros) * u[i]
     k2 = F(x_gorro[i] + (h/2)*k1, parametros) + G(x_gorro[i] + (h/2)*k1, parametros) * (u[i] + (h/2))
     k3 = F(x_gorro[i] + (h/2)*k2, parametros) + G(x_gorro[i] + (h/2)*k2, parametros) * (u[i] + (h/2))
     k4 = F(x_gorro[i] + h*k3, parametros) + G(x_gorro[i] + h*k3, parametros) * (u[i] + h)
     x_gorro[i+1] = x_gorro[i] + (h/6)*(k1 + 2*k2 + 2*k3 + k4)
-u[N-1] =  (K) @ x_gorro[N-1] + sum(alpha_sol[l] * kernel(x_sol, x_gorro, l, N-1, sigma, parametros) for l in range(N))
+u[N-1] =  (K-L_laplaciano) @ x_gorro[N-1] + sum(alpha_sol[l] * kernel(x_sol, x_gorro, l, N-1, sigma, parametros) for l in range(N))
 
-objetivo = sum(np.matmul(x_gorro[i].T, x_gorro[i])  for i in range(N-5,N))
+objetivo = sum(np.matmul(x_gorro[i].T, x_gorro[i])  for i in range(N-6,N))
 
 print("valor", objetivo)
 print("posición final", x_gorro[N-1])

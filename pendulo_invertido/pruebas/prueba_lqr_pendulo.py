@@ -1,17 +1,30 @@
 import numpy as np
 import control
 
-sigma = 1
-h = 0.05
+# Parámetros del sistema
 m = 0.1
-m_t = 1.1
-largo = 0.5
+mt = 1.1
+l = 0.5
 g = 9.81
-Q = np.eye(4)
-R = np.array([[0.01]])
-A = np.array([[0, 1, 0, 0], [0, 0, -g*m/(4/3*m_t-m), 0], [0, 0, 0, 1], [0, 0, m_t*g/(largo*(4/3*m_t-m)), 0]])
-B = np.array([[0], [4/3*(1/(4/3*m_t-m))], [0], [-1/(largo*(4/3*m_t-m))]])
 
-K, S, E = control.lqr(A, B, Q, R)   
+# Matrices del sistema linealizado
+A = np.array([[0, 1, 0, 0],
+              [0, 0, -m*g/(4/3*mt-m), 0],
+              [0, 0, 0, 1],
+              [0, 0, mt*g/(l*(4/3*mt-m)), 0]])
 
-print(K)
+B = np.array([[0],
+              [4/3 / (4/3*mt - m)],
+              [0],
+              [-1 / (l*(4/3*mt - m))]])
+
+# Matrices de costo
+Q = np.eye(4) # Matriz identidad 4x4
+R = 0.01      # Escalar
+
+# Cálculo del controlador LQR
+K, S, E = control.lqr(A, B, Q, R)
+
+# Mostrar la matriz de retroalimentación resultante
+L_lqr = K
+print(L_lqr)
