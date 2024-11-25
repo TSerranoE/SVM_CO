@@ -30,7 +30,7 @@ def funcion_objetivo(vars, kernel, valores_iniciales, parametros):
 T = 10
 N = 30
 vf = 100
-lambda_value = 0.01
+lambda_value = 0.0001
 sigma = 1
 gamma = 1
 
@@ -76,19 +76,12 @@ def plot(result, valores_iniciales, parametros):
     alpha_sol = result.x[2*N:]
 
     # creación de x_gorro
-    x_gorro = np.zeros((N, 2))
-    x_gorro[0] = valores_iniciales[:2]
+    x_gorro = x_sol
 
     # Definición del control
     u_opt = np.zeros(N)
-
-    for i in range(N-1):
-        x_gorro[i+1][0] =  x_gorro[i][0] + (T/N)*(x_gorro[i][1]) 
-        x_gorro[i+1][1] = x_gorro[i][1] + (T/N)*(-gamma*x_gorro[i][0] + x_gorro[i][1] + sum(alpha_sol[l]*
-                                                        kernel(x_sol, x_gorro, l, i, parametros) for l in range(N))) 
-    
     for i in range(N):
-       u_opt[i] = sum(alpha_sol[l]* kernel(x_sol, x_gorro, l, i, parametros) for l in range(N))
+       u_opt[i] = sum(alpha_sol[l]* kernel(x_sol, x_sol, l, i, parametros) for l in range(N))
 
     # Imprimir el valor de la función objetivo    
     print("valor", (x_gorro[N-1][1]-vf)**2 )

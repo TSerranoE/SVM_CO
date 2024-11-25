@@ -10,7 +10,7 @@ h = 0.05
 m = 0.1
 m_t = 1.1
 largo = 0.5
-g = 10
+g = 9.81
 
 A = np.array([[0, 1, 0, 0], 
               [0, 0, -g*m/(4/3*m_t-m), 0], 
@@ -36,7 +36,7 @@ B = np.array([0, 4/3*(1/(4/3*m_t-m)), 0, -1/(largo*(4/3*m_t-m))])
 R = 0.01
 # Parámetros
 parametros = [N, lambda_value, h, m, m_t, largo, g, Q, R, A , B, K[0]]
-valores_iniciales = [0, 0, 0, 0, 1, np.sqrt(10)] # x0, v0, theta0, w0, alpha0, sigma0
+valores_iniciales = [0, 0, 0, 0, 0.01, np.sqrt(10)] # x0, v0, theta0, w0, alpha0, sigma0
 
 # Definición variables valores_iniciales
 def variable_inicial(valores_iniciales, parametros):
@@ -111,8 +111,8 @@ def constraint(vars):
     constraints.append(x[0][2] - valores_iniciales[2])
     constraints.append(x[0][3] - valores_iniciales[3])
     for i in range(N-1):
-        constraints.append(1000*(x[i+1] - (x[i] + (F(x[i], parametros) + G(x[i], parametros) * sum(alpha[l] * kernel(x, x, l, i, sigma, parametros) for l in range(N))) * tf/N)))
-    return np.concatenate(constraints)
+        constraints.extend(1000*(x[i+1] - (x[i] + (F(x[i], parametros) + G(x[i], parametros) * sum(alpha[l] * kernel(x, x, l, i, sigma, parametros) for l in range(N))) * tf/N)))
+    return np.array(constraints)
 
 # Definir las restricciones en el formato requerido por scipy.optimize.minimize
 constraints = [{'type': 'eq', 'fun': constraint},
