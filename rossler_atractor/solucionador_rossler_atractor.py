@@ -1,4 +1,4 @@
-from rossler_atractor.rossler_atractor import funcion_objetivo, variable_inicial, kernel, plot
+from rossler_atractor import funcion_objetivo, variable_inicial, kernel, plot
 from scipy.optimize import minimize
 
 

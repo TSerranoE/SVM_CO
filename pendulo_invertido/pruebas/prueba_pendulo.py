@@ -10,7 +10,7 @@ h = 0.05
 m = 0.1
 m_t = 1.1
 largo = 0.5
-g = 9.81
+g = 10
 
 A = np.array([[0, 1, 0, 0], 
               [0, 0, -g*m/(4/3*m_t-m), 0], 
@@ -36,7 +36,7 @@ B = np.array([0, 4/3*(1/(4/3*m_t-m)), 0, -1/(largo*(4/3*m_t-m))])
 R = 0.01
 # Parámetros
 parametros = [N, lambda_value, h, m, m_t, largo, g, Q, R, A , B, K[0]]
-valores_iniciales = [0, 0, 0, 0, 0.1, np.sqrt(10)] # x0, v0, theta0, w0, alpha0, sigma0
+valores_iniciales = [0, 0, 0, 0, 1, np.sqrt(10)] # x0, v0, theta0, w0, alpha0, sigma0
 
 # Definición variables valores_iniciales
 def variable_inicial(valores_iniciales, parametros):
@@ -127,21 +127,21 @@ print("primera optimización", result)
 # Extraer las variables
 x_sol = result.x[:4*N].reshape(4, N).T
 alpha_sol = result.x[4*N:5*N]
-sigma = result.x[5*N]
+sigma_sol = result.x[5*N]
 
 # Creación de x_gorro
 x_gorro = np.zeros((N, 4))
 x_gorro[0] = valores_iniciales[:4]
 u = np.zeros(N)
 for i in range(N-1):
-    L_laplaciano = sum((2*alpha_sol[l]*np.exp(-np.matmul(x_sol[l].T, x_sol[l])/sigma**2)/sigma**2)*x_sol[l] for l in range(N))
-    u[i] =  (K-L_laplaciano) @ x_gorro[i] + sum(alpha_sol[l] * kernel(x_sol, x_gorro, l, i, sigma, parametros) for l in range(N))
+    L_laplaciano = sum((2*alpha_sol[l]*np.exp(-np.matmul(x_sol[l].T, x_sol[l])/sigma_sol**2)/sigma_sol**2)*x_sol[l] for l in range(N))
+    u[i] =  (K-L_laplaciano) @ x_gorro[i] + sum(alpha_sol[l] * kernel(x_sol, x_gorro, l, i, sigma_sol, parametros) for l in range(N))
     k1 = F(x_gorro[i], parametros) + G(x_gorro[i], parametros) * u[i]
     k2 = F(x_gorro[i] + (h/2)*k1, parametros) + G(x_gorro[i] + (h/2)*k1, parametros) * (u[i] + (h/2))
     k3 = F(x_gorro[i] + (h/2)*k2, parametros) + G(x_gorro[i] + (h/2)*k2, parametros) * (u[i] + (h/2))
     k4 = F(x_gorro[i] + h*k3, parametros) + G(x_gorro[i] + h*k3, parametros) * (u[i] + h)
     x_gorro[i+1] = x_gorro[i] + (h/6)*(k1 + 2*k2 + 2*k3 + k4)
-u[N-1] =  (K-L_laplaciano) @ x_gorro[N-1] + sum(alpha_sol[l] * kernel(x_sol, x_gorro, l, N-1, sigma, parametros) for l in range(N))
+u[N-1] =  (K-L_laplaciano) @ x_gorro[N-1] + sum(alpha_sol[l] * kernel(x_sol, x_gorro, l, N-1, sigma_sol, parametros) for l in range(N))
 
 objetivo = sum(np.matmul(x_gorro[i].T, x_gorro[i])  for i in range(N-6,N))
 

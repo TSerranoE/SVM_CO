@@ -57,7 +57,7 @@ def plot(result, valores_iniciales, parametros):
        u_opt[i] = sum(alpha_sol[l]* kernel(x_sol, x_gorro, l, i, parametros) for l in range(N))
 
     # Imprimir el valor de la función objetivo    
-    print("valor", (x_gorro[N-1][1]-vf)**2 + lambda_value*np.sum(alpha_sol**2))
+    print("valor", (x_gorro[N-1][1]-vf)**2 )
     print("velocidad final", x_gorro[N-1][1])
 
     # Graficar las soluciones

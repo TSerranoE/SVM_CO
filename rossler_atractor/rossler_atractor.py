@@ -70,7 +70,7 @@ def plot(result, ref, valores_iniciales, parametros):
                + gamma*(sum(alpha_sol[l]*(kernel(x_sol, x_gorro, l, i, 0, parametros))for l in range(N))**2
                       + sum(alpha_sol[l]*(kernel(x_sol, x_gorro, l, i, 1, parametros))for l in range(N))**2
                       + sum(alpha_sol[l]*(kernel(x_sol, x_gorro, l, i, 2, parametros))for l in range(N))**2) 
-                      for i in range(N)) + lambda_value*np.sum(alpha_sol**2)
+                      for i in range(N)) 
 
     # Imprimir el valor de la función objetivo    
     print("valor", obj)
