@@ -106,14 +106,17 @@ def constraint(vars):
     alpha = vars[4*N:5*N]
     sigma = vars[5*N]
     constraints = []
+    constraints.append(x[0][0] - valores_iniciales[0])
+    constraints.append(x[0][1] - valores_iniciales[1])
+    constraints.append(x[0][2] - valores_iniciales[2])
+    constraints.append(x[0][3] - valores_iniciales[3])
     for i in range(N-1):
         constraints.append(1000*(x[i+1] - (x[i] + (F(x[i], parametros) + G(x[i], parametros) * sum(alpha[l] * kernel(x, x, l, i, sigma, parametros) for l in range(N))) * tf/N)))
     return np.concatenate(constraints)
 
 # Definir las restricciones en el formato requerido por scipy.optimize.minimize
 constraints = [{'type': 'eq', 'fun': constraint},
-               {'type': 'ineq', 'fun': lambda vars: vars[5*N]},  # sigma > 0
-               {'type': 'eq', 'fun': lambda vars: vars[:4]}]  # Las primeras 4 variables deben ser 0
+               {'type': 'ineq', 'fun': lambda vars: vars[5*N]}]  # sigma > 0
 
 # Minimizar la función objetivo con restricciones
 result = minimize(lambda vars: funcion_obj(vars), 
