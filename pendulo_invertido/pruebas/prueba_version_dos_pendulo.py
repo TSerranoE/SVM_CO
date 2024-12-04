@@ -111,15 +111,15 @@ def constraint(vars):
     constraints.append(x[0][2] - valores_iniciales[2])
     constraints.append(x[0][3] - valores_iniciales[3])
     u = np.zeros(N)
+    L_laplaciano = sum((2*alpha[l]*np.exp(-np.matmul(x[l].T, x[l])/sigma**2)/sigma**2)*x[l] for l in range(N))
     for i in range(N-1):
-        L_laplaciano = sum((2*alpha[l]*np.exp(-np.matmul(x[l].T, x[l])/sigma**2)/sigma**2)*x[l] for l in range(N))
         u[i] =  (K-L_laplaciano) @ x[i] + sum(alpha[l] * kernel(x, x, l, i, sigma, parametros) for l in range(N))
         k1 = F(x[i], parametros) + G(x[i], parametros) * u[i]
         k2 = F(x[i] + (h/2)*k1, parametros) + G(x[i] + (h/2)*k1, parametros) * (u[i] + (h/2))
         k3 = F(x[i] + (h/2)*k2, parametros) + G(x[i] + (h/2)*k2, parametros) * (u[i] + (h/2))
         k4 = F(x[i] + h*k3, parametros) + G(x[i] + h*k3, parametros) * (u[i] + h)
         
-        constraints.extend(1000*(x[i+1] - x[i] + (h/6)*(k1 + 2*k2 + 2*k3 + k4)))
+        constraints.extend(x[i+1] - x[i] + (h/6)*(k1 + 2*k2 + 2*k3 + k4))
     return np.array(constraints)
 
 
@@ -142,8 +142,8 @@ sigma_sol = result.x[5*N]
 
 
 u = np.zeros(N)
+L_laplaciano = sum((2*alpha_sol[l]*np.exp(-np.matmul(x_sol[l].T, x_sol[l])/sigma_sol**2)/sigma_sol**2)*x_sol[l] for l in range(N))
 for i in range(N-1):
-    L_laplaciano = sum((2*alpha_sol[l]*np.exp(-np.matmul(x_sol[l].T, x_sol[l])/sigma_sol**2)/sigma_sol**2)*x_sol[l] for l in range(N))
     u[i] =  (K-L_laplaciano) @ x_sol[i] + sum(alpha_sol[l] * kernel(x_sol, x_sol, l, i, sigma_sol, parametros) for l in range(N))
     k1 = F(x_sol[i], parametros) + G(x_sol[i], parametros) * u[i]
     k2 = F(x_sol[i] + (h/2)*k1, parametros) + G(x_sol[i] + (h/2)*k1, parametros) * (u[i] + (h/2))
